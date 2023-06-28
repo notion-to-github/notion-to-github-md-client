@@ -1,95 +1,134 @@
-import Image from 'next/image'
-import styles from './page.module.css'
+'use client';
 
-export default function Home() {
-  return (
-    <main className={styles.main}>
-      <div className={styles.description}>
-        <p>
-          Get started by editing&nbsp;
-          <code className={styles.code}>src/app/page.tsx</code>
-        </p>
-        <div>
-          <a
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{' '}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className={styles.vercelLogo}
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
-      </div>
+import Profile from '@/components/Profile';
+import useAuth from '@/hooks/useAuth';
+import { getApp } from '@/lib/github';
+import { accessTokenAtom } from '@/recoil/auth';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { useRecoilValue } from 'recoil';
+import { styled } from 'styled-components';
 
-      <div className={styles.center}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
+import Logo from '../assets/images/notion-to-github.png';
+import Image from 'next/image';
 
-      <div className={styles.grid}>
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Docs <span>-&gt;</span>
-          </h2>
-          <p>Find in-depth information about Next.js features and API.</p>
-        </a>
+export default function Page() {
+    const { isAuth, signout } = useAuth();
+    const [isHydrated, setIsHydrated] = useState(false);
+    const router = useRouter();
+    const accessToken = useRecoilValue(accessTokenAtom);
 
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Learn <span>-&gt;</span>
-          </h2>
-          <p>Learn about Next.js in an interactive course with&nbsp;quizzes!</p>
-        </a>
+    useEffect(() => {
+        setIsHydrated(true);
+    }, []);
 
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Templates <span>-&gt;</span>
-          </h2>
-          <p>Explore the Next.js 13 playground.</p>
-        </a>
+    if (!isHydrated) {
+        return null;
+    }
 
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Deploy <span>-&gt;</span>
-          </h2>
-          <p>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
-  )
+    const handleSigninButtonClick = () => {
+        window.location.assign(
+            `${process.env.NEXT_PUBLIC_GITHUB_AUTH_CODE_SERVER}?client_id=${process.env.NEXT_PUBLIC_CLIENT_ID}&redirect_url=${process.env.NEXT_PUBLIC_REDIRECT_URL}`,
+        );
+    };
+
+    const handleSettingButtonClick = () => router.push('/setting');
+
+    const handleDeployButtonClick = async () => {
+        const res = await getApp(accessToken.value);
+        console.log(res);
+    };
+
+    return (
+        <Wrapper>
+            <Title>
+                <Image
+                    src={Logo}
+                    alt="notion-to-github"
+                    width={75}
+                    height={75}
+                />
+                <h1>Notion to GitHub MD</h1>
+            </Title>
+            <div>
+                Notion에 작성한 글을 Markdown으로 추출하여 자동으로 GitHub에
+                올려주는 서비스 입니다.
+            </div>
+            <div>블로그, 웹사이트 등을 더욱 편하게 관리해보세요!</div>
+            {!isAuth ? (
+                <SigninButton onClick={handleSigninButtonClick}>
+                    GitHub로 로그인
+                </SigninButton>
+            ) : (
+                <>
+                    <Profile />
+                    <Button onClick={handleDeployButtonClick} $isDeploy>
+                        📖 배포하기
+                    </Button>
+                    <Button onClick={handleSettingButtonClick}>
+                        🛠️ 설정하기
+                    </Button>
+                    <Button onClick={signout}>⎋ 로그아웃</Button>
+                    <div>
+                        Notion to GitHub MD가 처음이라면?{' '}
+                        <InlineLink href="/start">시작하기</InlineLink>
+                    </div>
+                </>
+            )}
+        </Wrapper>
+    );
 }
+
+const Wrapper = styled.div`
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+`;
+
+const Title = styled.div`
+    display: flex;
+`;
+
+interface ButtonProps {
+    $isDeploy?: boolean;
+}
+
+const Button = styled.button<ButtonProps>`
+    cursor: pointer;
+    width: 400px;
+    font-size: 20px;
+    margin: 20px;
+    padding: 20px;
+    border: 1px solid rgba(31, 35, 40, 0.15);
+    border-radius: 10px;
+    background-color: ${props => {
+        if (props.$isDeploy) return '#1f883d';
+        else return '#eeeeee';
+    }};
+    color: ${props => {
+        if (props.$isDeploy) return '#ffffff';
+    }};
+
+    &:hover {
+        background-color: ${props => {
+            if (props.$isDeploy) return '#1a7f37';
+            else return '#dedede';
+        }};
+    }
+`;
+
+const SigninButton = styled.button`
+    cursor: pointer;
+    font-size: 20px;
+    margin: 20px;
+    padding: 20px;
+    border: none;
+    border-radius: 10px;
+    color: #ffffff;
+    background-color: #000000;
+`;
+
+const InlineLink = styled.a`
+    color: #1c6bfe;
+    text-decoration: underline;
+`;
