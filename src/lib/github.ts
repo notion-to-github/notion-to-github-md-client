@@ -1,5 +1,5 @@
-import axios from "axios";
-import { Octokit } from "octokit";
+import axios from 'axios';
+import { Octokit } from 'octokit';
 
 export const getGitHubAccessToken = async (code: string) => {
     // docs - https://docs.github.com/en/enterprise-cloud@latest/apps/creating-github-apps/authenticating-with-a-github-app/generating-a-user-access-token-for-a-github-app#about-user-access-tokens
@@ -11,15 +11,15 @@ export const getGitHubAccessToken = async (code: string) => {
             code: code,
         },
         {
-            headers: { Accept: "application/json" },
-        }
+            headers: { Accept: 'application/json' },
+        },
     );
 
     return res.data;
 };
 
 export const getGitHubAccessTokenByRefreshToken = async (
-    refreshToken: string | null
+    refreshToken: string | null,
 ) => {
     // docs - https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/refreshing-user-access-tokens#refreshing-a-user-access-token-with-a-refresh-token
     const res = await axios.post(
@@ -27,15 +27,39 @@ export const getGitHubAccessTokenByRefreshToken = async (
         {
             client_id: process.env.NEXT_PUBLIC_CLIENT_ID,
             client_secret: process.env.CLIENT_SECRETS,
-            grant_type: "refresh_token",
+            grant_type: 'refresh_token',
             refresh_token: refreshToken,
         },
         {
-            headers: { Accept: "application/json" },
-        }
+            headers: { Accept: 'application/json' },
+        },
     );
 
     return res.data;
+};
+
+export const getRepositoryIsForked = async (
+    accessToken: string | null,
+    username: string | null,
+) => {
+    const octokit = new Octokit({
+        auth: accessToken,
+    });
+
+    const res = await octokit.request(`GET /users/${username}/repos`, {
+        username: username,
+        headers: {
+            'X-GitHub-Api-Version': '2022-11-28',
+        },
+    });
+
+    console.log(res);
+
+    for (const repository of res.data) {
+        if (repository.name === 'notion-to-github-md') return true;
+    }
+
+    return false;
 };
 
 export const getAppIsInstalled = async (accessToken: string | null) => {
@@ -44,15 +68,15 @@ export const getAppIsInstalled = async (accessToken: string | null) => {
     });
 
     // docs - https://docs.github.com/en/rest/apps/installations?apiVersion=2022-11-28#list-app-installations-accessible-to-the-user-access-token
-    const res = await octokit.request("GET /user/installations", {
+    const res = await octokit.request('GET /user/installations', {
         headers: {
-            "X-GitHub-Api-Version": "2022-11-28",
+            'X-GitHub-Api-Version': '2022-11-28',
         },
     });
     console.log(res);
 
     for (let i = 0; i < res.data.installations.length; i++) {
-        if (res.data.installations[i].app_slug === "notion-to-github-md")
+        if (res.data.installations[i].app_slug === 'notion-to-github-md')
             return true;
     }
     return false;
@@ -65,18 +89,18 @@ const runWorkflow = async (accessToken: string | null) => {
 
     // docs - https://docs.github.com/en/rest/actions/workflows?apiVersion=2022-11-28#create-a-workflow-dispatch-event
     const res = await octokit.request(
-        "POST /repos/julyydev/automation-test/actions/workflows/main.yml/dispatches",
+        'POST /repos/julyydev/automation-test/actions/workflows/main.yml/dispatches',
         {
             // owner: 'julyydev',
             // repo: 'automation-test',
             // workflow_id: 'main.yml',
             // ref: 'topic-branch',
-            ref: "main",
+            ref: 'main',
             // inputs: {
             //     name: 'Mona the Octocat',
             //     home: 'San Francisco, CA',
             // },
-        }
+        },
     );
     console.log(res);
 };
@@ -88,7 +112,7 @@ export const getPublicKeyId = async (accessToken: string | null) => {
 
     // docs - https://docs.github.com/en/rest/actions/secrets?apiVersion=2022-11-28#get-a-repository-public-key
     const res = await octokit.request(
-        "GET /repos/julyydev/notion-to-github-md/actions/secrets/public-key"
+        'GET /repos/julyydev/notion-to-github-md/actions/secrets/public-key',
     );
     console.log(res);
 
@@ -105,17 +129,17 @@ export const putSecrets = async (accessToken: string | null) => {
 
     // docs - https://docs.github.com/en/rest/actions/secrets?apiVersion=2022-11-28#create-or-update-a-repository-secret
     const res = await octokit.request(
-        "PUT /repos/julyydev/notion-to-github-md/actions/secrets/config",
+        'PUT /repos/julyydev/notion-to-github-md/actions/secrets/config',
         {
             // owner: 'OWNER',
             // repo: 'REPO',
             // secret_name: 'SECRET_NAME',
-            encrypted_value: "c2VjcmV0",
+            encrypted_value: 'c2VjcmV0',
             key_id: publicKeyId,
             headers: {
-                "X-GitHub-Api-Version": "2022-11-28",
+                'X-GitHub-Api-Version': '2022-11-28',
             },
-        }
+        },
     );
     console.log(res);
 };
@@ -126,9 +150,9 @@ export const getUserInfo = async (accessToken: string | null) => {
     });
 
     // docs - https://docs.github.com/ko/rest/users/users?apiVersion=2022-11-28#get-the-authenticated-user
-    const res = await octokit.request("GET /user", {
+    const res = await octokit.request('GET /user', {
         headers: {
-            "X-GitHub-Api-Version": "2022-11-28",
+            'X-GitHub-Api-Version': '2022-11-28',
         },
     });
 
@@ -141,10 +165,10 @@ export const getApp = async (accessToken: string | null) => {
     });
 
     // docs - https://docs.github.com/ko/rest/users/users?apiVersion=2022-11-28#get-the-authenticated-user
-    const res = await octokit.request("GET /apps/notion-to-github-md", {
-        app_slug: "notion-to-github-md",
+    const res = await octokit.request('GET /apps/notion-to-github-md', {
+        app_slug: 'notion-to-github-md',
         headers: {
-            "X-GitHub-Api-Version": "2022-11-28",
+            'X-GitHub-Api-Version': '2022-11-28',
         },
     });
 
