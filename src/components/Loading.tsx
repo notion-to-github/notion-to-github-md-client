@@ -1,4 +1,4 @@
-import styled, { keyframes } from "styled-components";
+import styled, { keyframes } from 'styled-components';
 
 interface Props {
     big?: boolean;
@@ -9,9 +9,9 @@ const Loading = (props: Props) => {
 
     return (
         <Wrapper>
-            <Dot delay={0} big />
-            <Dot delay={200} big />
-            <Dot delay={400} big />
+            <Dot delay={0} big={big} />
+            <Dot delay={200} big={big} />
+            <Dot delay={400} big={big} />
         </Wrapper>
     );
 };
@@ -36,11 +36,11 @@ const Wrapper = styled.div`
 const Dot = styled.div<DotProps>`
     background-color: #333;
     border-radius: 50%;
-    width: ${(props) => (props.big ? "20px" : "10px")};
-    height: ${(props) => (props.big ? "20px" : "10px")};
+    width: ${props => (props.big ? '20px' : '10px')};
+    height: ${props => (props.big ? '20px' : '10px')};
     margin: 0 5px;
     animation: ${bounce} 1.4s infinite ease-in-out both;
-    animation-delay: ${(props) => props.delay}ms;
+    animation-delay: ${props => props.delay}ms;
 `;
 
 export default Loading;

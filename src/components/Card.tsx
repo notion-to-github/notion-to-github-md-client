@@ -1,4 +1,4 @@
-import { keyframes, styled } from "styled-components";
+import { keyframes, styled } from 'styled-components';
 
 interface Props {
     id: number;
@@ -49,6 +49,8 @@ const Wrapper = styled.div`
     border-radius: 5px;
     padding: 20px;
     animation: ${slideIn} 0.5s ease-in-out;
+    display: flex;
+    flex-direction: column;
 `;
 
 const NextButton = styled.button`
